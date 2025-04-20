@@ -1,23 +1,26 @@
-# NAS Port Strategy
+**Docker Port Mapping Strategy for Synology with Reverse Proxy (Host Mode)**
 
-This document outlines a port allocation strategy for managing Docker containers and services on a Synology NAS device. The strategy aims to avoid port conflicts with Synology DSM and built-in services while ensuring a clean, scalable networking configuration for all containerized applications.
+---
 
-## Overview
+### Overview
 
-The goal is to:
+This document outlines a port mapping strategy for running multiple Docker containers on a Synology NAS using a reverse proxy configured in host network mode. The goal is to:
+
 - Avoid port conflicts with Synology DSM and built-in services.
 - Organize ports by application category.
-- Enable clean and scalable service management with reverse proxies.
+- Enable clean and scalable service management.
 
-## Key Concepts
+---
 
-### Reverse Proxy (Host Mode)
+### Key Concepts
+
+**Reverse Proxy (Host Mode)**
 
 - Runs in `network_mode: host`.
 - Listens on host ports 80 (HTTP) and 443 (HTTPS).
 - Routes traffic to backend services using internal ports mapped to unique host ports.
 
-### Synology Reserved Ports to Avoid
+**Synology Reserved Ports to Avoid**
 
 | Port        | Service                  |
 | ----------- | ------------------------ |
@@ -30,24 +33,30 @@ The goal is to:
 | 17000–18000 | DLNA/Audio Station, etc. |
 | 10101–10110 | Synology Active Insight  |
 
-## Port Range Allocation Strategy
+---
 
-| Port Range | Category             | Example Apps                             |
-| ---------- | -------------------- | ---------------------------------------- |
-| 6000–6099  | Media Management     | Sonarr, Radarr, Lidarr, Prowlarr, Bazarr |
-| 6100–6199  | Media Playback       | Jellyfin, Emby                           |
-| 6200–6299  | Photo Management     | PhotoPrism, Immich                       |
-| 6300–6399  | Smart Home           | Home Assistant, ESPHome, Zigbee2MQTT     |
-| 6400–6499  | Video Surveillance   | Frigate, Shinobi, MotionEye              |
-| 6500–6599  | Personal Cloud       | Nextcloud, FileBrowser, Syncthing        |
-| 6600–6699  | Network Management   | GenieACS, Pi-hole, AdGuard Home          |
-| 6700–6799  | Dashboards/Dev Tools | Portainer, Netdata, Grafana, Dashy       |
-| 6800–6899  | Databases            | PostgreSQL, InfluxDB, MariaDB            |
-| 6900–6999  | Miscellaneous        | Other apps not in above categories       |
+### Port Range Allocation Strategy
 
-## Sample Port Assignments
+| Port Range  | Category             | Example Apps                                      |
+| ----------- | -------------------- | ------------------------------------------------- |
+| 6000–6099   | Media Management     | Sonarr, Radarr, Lidarr, Prowlarr, Bazarr          |
+| 6100–6199   | Media Playback       | Jellyfin, Emby                                    |
+| 6200–6299   | Photo Management     | PhotoPrism, Immich                                |
+| 6300–6399   | Smart Home           | Home Assistant, ESPHome, Zigbee2MQTT              |
+| 6400–6499   | Video Surveillance   | Frigate, Shinobi, MotionEye                       |
+| 6500–6599   | Personal Cloud       | Nextcloud, FileBrowser, Syncthing                 |
+| 6600–6699   | Network Management   | GenieACS, Pi-hole, AdGuard Home                   |
+| 6700–6799   | Dashboards/Dev Tools | Portainer, Netdata, Grafana, Dashy                |
+| 6800–6879   | Databases            | PostgreSQL, InfluxDB, MariaDB                     |
+| 6880–6899   | Torrent P2P Ports    | BitTorrent P2P traffic (TCP/UDP)                  |
+| 6900–6999   | Miscellaneous Apps   | Torrent Client UIs (alternative), misc services   |
+| 7000–7099   | Torrent Clients (UI) | qBittorrent, Deluge, Transmission (Web UI only)   |
 
-### Media Management (6000–6099)
+---
+
+### Sample Port Assignments
+
+**Media Management (6000–6099)**
 
 | App      | Host Port | Container Port |
 | -------- | --------- | -------------- |
@@ -57,29 +66,69 @@ The goal is to:
 | Prowlarr | 6004      | 9696           |
 | Bazarr   | 6005      | 6767           |
 
-### Smart Home (6300–6399)
+**Smart Home (6300–6399)**
 
 | App            | Host Port | Container Port |
 | -------------- | --------- | -------------- |
 | Home Assistant | 6301      | 8123           |
 | ESPHome        | 6302      | 6052           |
 
-### Surveillance (6400–6499)
+**Surveillance (6400–6499)**
 
 | App     | Host Port | Container Port |
 | ------- | --------- | -------------- |
 | Frigate | 6401      | 5000           |
 
-### Personal Cloud (6500–6599)
+**Personal Cloud (6500–6599)**
 
 | App       | Host Port | Container Port |
 | --------- | --------- | -------------- |
 | Nextcloud | 6501      | 80             |
 | Syncthing | 6502      | 8384           |
 
-### Network Management (6600–6699)
+**Network Management (6600–6699)**
 
 | App      | Host Port | Container Port |
 | -------- | --------- | -------------- |
 | GenieACS | 6601      | 7547           |
 | Pi-hole  | 6602      | 80             |
+
+**Databases (6800–6879)**
+
+| App        | Host Port | Container Port |
+| ---------- | --------- | -------------- |
+| PostgreSQL | 6801      | 5432           |
+| InfluxDB   | 6802      | 8086           |
+| MariaDB    | 6803      | 3306           |
+
+**Torrent P2P Ports (6880–6899)**
+
+| App          | Host Port | Container Port | Protocol |
+| ------------ | --------- | -------------- | -------- |
+| qBittorrent  | 6880      | 6881           | TCP/UDP  |
+| Deluge       | 6881      | 6881           | TCP/UDP  |
+| Transmission | 6882      | 51413          | TCP/UDP  |
+
+**Miscellaneous Apps (6900–6999)**
+
+| App          | Host Port | Container Port | Description      |
+| ------------ | --------- | -------------- | ---------------- |
+| qBittorrent  | 6901      | 8080           | Web UI (alt)     |
+| Deluge       | 6902      | 8112           | Web UI (alt)     |
+| Transmission | 6903      | 9091           | Web UI (alt)     |
+
+**Torrent Clients (UI) (7000–7099)**
+
+| App          | Host Port | Container Port | Description |
+| ------------ | --------- | -------------- | ----------- |
+| qBittorrent  | 7001      | 8080           | Web UI      |
+| Deluge       | 7002      | 8112           | Web UI      |
+| Transmission | 7003      | 9091           | Web UI      |
+
+---
+
+### Notes
+
+- Be sure to check Synology’s Control Panel > Application Portal and manually installed packages to ensure ports don’t overlap.
+- Use this document as a baseline and adjust based on actual usage.
+- Keep port assignments documented for future reference and scaling.
